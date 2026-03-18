@@ -64,3 +64,27 @@ function createTaskElement(taskText, completed) {
         // Add on visible list
         document.getElementById("taskList").appendChild(li);
 }
+
+// Save a single task to localStorage
+function saveTask( taskText, completed) {
+    // Retrieve previously saved tasks from your browser
+    let  tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    // Add the new task to the list
+    tasks.push({ text: taskText, completed: completed});
+    //
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+// Update all tasks in localStorage
+function updateTasks() {
+    let tasks = [];
+    // Get all tasks from the screen
+    document.querySelectorAll("#taskList li").forEach(li => {
+        tasks.push({
+            text: li.firstChild.textContent,
+            completed: li.firstChild.textContent === "line-through"
+        });
+    });
+    // Save everything again
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
