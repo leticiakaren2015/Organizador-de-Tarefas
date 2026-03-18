@@ -45,7 +45,8 @@ function createTaskElement(taskText, completed) {
 
         // Toggle completed by clicking
         li.onclick = function () {
-            li.style.textDecoration = completed ? "line-through" : none;
+            completed = !completed; // Toggle between true or false
+            li.style.textDecoration = completed ? "line-through" : "none";
             updateTasks(); // Update storage
         };
 
@@ -61,5 +62,5 @@ function createTaskElement(taskText, completed) {
         li.appendChild(deleteBtn);
         
         // Add on visible list
-        document.getElementById("taskList").appendChild("li");
+        document.getElementById("taskList").appendChild(li);
 }
