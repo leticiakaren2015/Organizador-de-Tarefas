@@ -9,17 +9,17 @@ function addTask() {
     const input = document.getElementById("taskInput");
     const taskText = input.value;
 
-    //Validade empty input
+    // Validade empty input
     if(taskText === "") {
         alert("Digite uma nova tarefa!");
         return;
     }
 
-    //Create list item 
+    // Create list item 
     const li = document.createElement("li");
     li.textContent = taskText;
 
-    //Toggle completed task on click
+    // Toggle completed task on click
     li.onclick = function() {
         if(li.style.textDecoration  === "line-through") {
             li.style.textDecoration = "none";
@@ -27,6 +27,18 @@ function addTask() {
             li.style.textDecoration = "line-through"
         }
     };
+
+
+// Load tasks from localStorage and display them
+function loadTasks() {
+    // Get tasks from localStorage
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    // For each task, create on screen
+    tasks.forEach(task => {
+        createTaskElement(task.text, task.completed)
+    });
+}
+
 
     //Create delete button
     const deleteBtn = document.createElement("button");
