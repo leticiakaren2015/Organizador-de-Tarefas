@@ -40,13 +40,13 @@ function createTaskElement(taskText, completed) {
         
         // Mark as completed if necessary
         if(completed) {
-            li.style.textDecoration = "line-through";
+            li.classList.add("completed");
         };
 
         // Toggle completed by clicking
         li.onclick = function () {
             completed = !completed; // Toggle between true or false
-            li.style.textDecoration = completed ? "line-through" : "none";
+            li.classList.toggle("completed");
             updateTasks(); // Update storage
         };
 
@@ -82,7 +82,7 @@ function updateTasks() {
     document.querySelectorAll("#taskList li").forEach(li => {
         tasks.push({
             text: li.firstChild.textContent,
-            completed: li.firstChild.textContent === "line-through"
+            completed: li.classList.contains("completed")
         });
     });
     // Save everything again
