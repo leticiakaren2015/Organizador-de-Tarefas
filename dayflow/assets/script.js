@@ -1,3 +1,7 @@
+// Load tasks when page starts
+window.onload = function () {
+    loadTasks();
+};
 
 // Function to add a new task
 function addTask() {
