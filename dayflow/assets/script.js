@@ -33,3 +33,33 @@ function loadTasks() {
     });
 }
 
+// Create task on screen
+function createTaskElement(taskText, completed) {
+    const li = document.createElement("li");
+        li.textContent = taskText;
+        
+        // Mark as completed if necessary
+        if(completed) {
+            li.style.textDecoration = "line-through";
+        };
+
+        // Toggle completed by clicking
+        li.onclick = function () {
+            li.style.textDecoration = completed ? "line-through" : none;
+            updateTasks(); // Update storage
+        };
+
+        // Delete button
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "🗑️";
+
+        deleteBtn.onclick = function() {
+            li.remove();
+            updateTasks(); // Update storage
+        };
+
+        li.appendChild(deleteBtn);
+        
+        // Add on visible list
+        document.getElementById("taskList").appendChild("li");
+}
