@@ -13,21 +13,15 @@ function addTask() {
     if(taskText === "") {
         alert("Digite uma nova tarefa!");
         return;
-    }
-
-    // Create list item 
-    const li = document.createElement("li");
-    li.textContent = taskText;
-
-    // Toggle completed task on click
-    li.onclick = function() {
-        if(li.style.textDecoration  === "line-through") {
-            li.style.textDecoration = "none";
-        } else {
-            li.style.textDecoration = "line-through"
-        }
     };
 
+    // Call the function that creates the element on the screen
+    createTaskElement(taskText, false);
+    // The rescue I'll be doing in the next step
+    saveTask(taskText, false);
+
+    input.value = ""
+}
 
 // Load tasks from localStorage and display them
 function loadTasks() {
@@ -39,21 +33,3 @@ function loadTasks() {
     });
 }
 
-
-    //Create delete button
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "🗑️";
-
-    //Remover task  when clicking delete
-    deleteBtn.onclick = function() {
-        li.remove();
-    };
-
-    //Add delete button inside the task
-    li.appendChild(deleteBtn);
-    //Add to list
-    document.getElementById("taskList").appendChild(li);
-
-    //Clear input
-    input.value = "";
-}
