@@ -12,11 +12,26 @@
     <h1>Dayflow</h1>
     <!--Input for new task-->
     <input type="text" id="taskInput" placeholder="Digite uma tarefa">
-    <!--Add task button-->
+
+    <!-- Selection task priority -->
+    <select id="taskPriority">
+        <option value="baixa">Baixa</option>
+        <option value="media">Média</option>
+        <option value="alta">Alta</option>
+    </select>
+
+    <!-- Field for task category -->
+    <input type="text" id="taskCategory" placeholder="Categoria">
+    <!-- Field for conclusion date -->
+    <input type="date" id="taskDueDate">
+    <!-- Field for reminder schedule -->
+    <input type="time" id="taskReminder">
+
+    <!-- Button for add a new task -->
     <button onclick="addTask()">+ Nova tarefa</button>
 
     <h2>Minhas Tarefas</h2>
-    <!--Task List-->
+    <!-- Task List-->
     <ul id="taskList"></ul>
     <button>Organizar meu dia</button>
 
