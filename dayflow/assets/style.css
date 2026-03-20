@@ -1,3 +1,20 @@
 .completed {
     text-decoration: line-through;
 }
+
+/* Prioridade alta */
+.alta {
+    color: red;
+    font-weight: normal;
+}
+/* Prioridade média */
+.media {
+    color: orange;
+    font-weight: normal;
+}
+
+/* Prioridade baixa */
+.baixa {
+    color: green;
+    font-weight: normal;
+}

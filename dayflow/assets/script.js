@@ -48,7 +48,10 @@ function createTaskElement(taskText, completed, priority, category, dueDate, rem
     // Create element <li>
     const li = document.createElement("li");
 
-    // Store task information as attributes of the library
+    // Add priority the class to the element
+    li.classList.add(priority);
+
+    // Stores task information as attributes of the <li>
     li.dataset.text = taskText;
     li.dataset.priority = priority;
     li.dataset.category = category;
@@ -74,7 +77,9 @@ function createTaskElement(taskText, completed, priority, category, dueDate, rem
     // Delete button
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
-    deleteBtn.onclick = function() {
+
+    deleteBtn.onclick = function(event) {
+        event.stopPropagation(); // Prevents the click from going up to the li
         li.remove();
         updateTasks(); // Update storage
     };
@@ -114,5 +119,30 @@ function updateTasks() {
 
     });
     // Save everything again
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+// Function to organize tasks by priority
+function organizarDia() {
+    // Retrieve tasks from localStorage 
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    // Define the order of priorities
+    const ordem = { alta: 3, media: 2, baixa: 1 };
+
+    // Organize the tasks
+    tasks.sort((a, b) => ordem[b.priority] - ordem[a.priority]);
+
+    //Clean the list from the screen
+    document.getElementById("taskList").innerHTML = "";
+
+    // Recreate thee tasks in the correct order
+    tasks.forEach(task => {
+        createTaskElement(
+            task.text, task.completed, task.priority, task.category, task.dueDate, task.reminder
+        );
+    });
+
+    // Salve the new order
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
