@@ -51,7 +51,7 @@ function createTaskElement(taskText, completed, priority, category, dueDate, rem
     // Create element <li>
     const li = document.createElement("li");
 
-    // Add priority the class to the element
+    // Add priority class to the <li> element
     li.classList.add(priority);
 
     // Stores task information as attributes of the <li>
@@ -62,11 +62,13 @@ function createTaskElement(taskText, completed, priority, category, dueDate, rem
     li.dataset.reminder = reminder;
 
     // Add task content
-    li.innerHTML = `<strong>[${priority}]</strong> ${taskText} 
-    <em>(${category})</em>
-    <span> | Prazo: ${dueDate || '-'} </span>
-    <span> | Lembrete: ${reminder || '-'} </span>`;
-    
+    li.innerHTML = `
+    <span class="task-text">
+        <strong>[${priority}]</strong> ${taskText} 
+        <em>(${category})</em>
+        | Prazo: ${dueDate || '-'} | Lembrete: ${reminder || '-'}
+    </span>`;
+
     // If completed, add the class 'completed'
     if(completed) li.classList.add("completed");
 
@@ -80,19 +82,20 @@ function createTaskElement(taskText, completed, priority, category, dueDate, rem
     // Delete button
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
-
+    deleteBtn.classList.add("delete");
     deleteBtn.onclick = function(event) {
         event.stopPropagation(); // Prevents the click from going up to the li
         li.remove();
         updateTasks(); // Update storage
     };
 
-        // Add button of task delete
+        // Add delete button to <li>
     li.appendChild(deleteBtn);
 
     // Edit button
     const editBtn = document.createElement("button");
     editBtn.textContent = "✏️"; 
+    editBtn.classList.add("edit");
     editBtn.onclick = function(event) {
         event.stopPropagation(); // Prevent toggle completed
         editarTarefa(li); //Calls the edit function
@@ -164,7 +167,7 @@ function organizarDia() {
 }
 
 
-// Function task edit
+// Function to edit a task
 function editarTarefa(li) {
     // Get current values
     let taskText = li.dataset.text;
@@ -191,30 +194,34 @@ function editarTarefa(li) {
     li.dataset.notify = "false";
 
     // Update visual content
-    li.innerHTML =`<strong>[${newPriority}]</strong> ${newText}
+    li.querySelector(".task-text").innerHTML =`
+    <strong>[${newPriority}]</strong> ${newText}
     <em>(${newCategory})</em>
-    <strong>| Prazo: ${newDueDate || '-'}</strong>
-    <strong> | Lembrete: ${newReminder || '-'}</strong>`;
+    | Prazo: ${newDueDate || '-'} | Lembrete: ${newReminder || '-'}`;
 
-    // Re-add buttons (delete and edit)
-    const deleteBtn = document.createElement("button");
+
+    // Reuse existing buttons instead of creating new ones
+    const deleteBtn = li.querySelector(".delete") || document.createElement("button");
     deleteBtn.textContent = "🗑️";
+    deleteBtn.classList.add("delete");
     deleteBtn.onclick = function(event) {
         event.stopPropagation();
         li.remove();
         updateTasks();
     };
 
-    li.appendChild(deleteBtn);
+    // Append only if it didn’t exist before
+    if (!li.contains(deleteBtn)) li.appendChild(deleteBtn);
 
-    const editBtn = document.createElement("button");
+    const editBtn = li.querySelector(".edit") || document.createElement("button");
     editBtn.textContent = "✏️";
+    editBtn.classList.add("edit");
     editBtn.onclick = function(event) {
         event.stopPropagation();
         editarTarefa(li);
     };
 
-    li.appendChild(editBtn);
+    if (!li.contains(editBtn)) li.appendChild(editBtn);
 
     // Update localStorage
     updateTasks();
@@ -235,7 +242,7 @@ function verificarLembretes() {
     tasks.forEach(task => {
         
         // If the reminder time matches the current time
-        if (task.reminder && task.reminder === currentTime && task.notify !== true) {
+        if (task.reminder && task.reminder === currentTime && task.notify !== "true") {
 
             // Show reminder alert
             alert(`⏰ Reminder: ${task.text}`);
