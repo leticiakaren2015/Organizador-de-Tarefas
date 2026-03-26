@@ -3,6 +3,7 @@ window.onload = function () {
     loadTasks();
 };
 
+
 // Function to add a new task
 function addTask() {
     //Get input value
@@ -33,6 +34,7 @@ function addTask() {
     document.getElementById("taskReminder").value = "";
 }
 
+
 // Load tasks from localStorage and display them
 function loadTasks() {
     // Get tasks from localStorage
@@ -42,6 +44,7 @@ function loadTasks() {
         createTaskElement(task.text, task.completed, task.priority, task.category, task.dueDate, task.reminder);
     });
 }
+
 
 // Create task on screen
 function createTaskElement(taskText, completed, priority, category, dueDate, reminder) {
@@ -84,12 +87,24 @@ function createTaskElement(taskText, completed, priority, category, dueDate, rem
         updateTasks(); // Update storage
     };
 
-    // Add button of task delete
+        // Add button of task delete
     li.appendChild(deleteBtn);
+
+    // Edit button
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "✏️"; 
+    editBtn.onclick = function(event) {
+        event.stopPropagation(); // Prevent toggle completed
+        editarTarefa(li); //Calls the edit function
+    }
+
+    // Add button of task edit
+    li.appendChild(editBtn);
     
     // Add on visible list
     document.getElementById("taskList").appendChild(li);
 }
+
 
 // Save a single task to localStorage
 function saveTask( taskText, completed, priority, category, dueDate, reminder) {
@@ -122,6 +137,7 @@ function updateTasks() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+
 // Function to organize tasks by priority
 function organizarDia() {
     // Retrieve tasks from localStorage 
@@ -147,6 +163,64 @@ function organizarDia() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+
+// Function task edit
+function editarTarefa(li) {
+    // Get current values
+    let taskText = li.dataset.text;
+    let priority = li.dataset.priority;
+    let category = li.dataset.category;
+    let dueDate = li.dataset.dueDate;
+    let reminder = li.dataset.reminder;
+
+    // Prompt user for new values
+    const newText = prompt("Editar tarefa:", taskText) || taskText;
+    const newPriority = prompt("Editar prioridade (baixa, media, alta):", priority) || priority;
+    const newCategory = prompt("Editar categoria:",category) || category;
+    const newDueDate = prompt("Editar prazo (AAAA-MM-DD):", dueDate) || dueDate;
+    const newReminder = prompt("Editar lembrete (HH:MM):", reminder) || reminder;
+
+    // Update dateset
+    li.dataset.text = newText;
+    li.dataset.priority = newPriority;
+    li.dataset.category = newCategory;
+    li.dataset.dueDate = newDueDate;
+    li.dataset.reminder = newReminder;
+
+    // Reset notify flag for reminders
+    li.dataset.notify = "false";
+
+    // Update visual content
+    li.innerHTML =`<strong>[${newPriority}]</strong> ${newText}
+    <em>(${newCategory})</em>
+    <strong>| Prazo: ${newDueDate || '-'}</strong>
+    <strong> | Lembrete: ${newReminder || '-'}</strong>`;
+
+    // Re-add buttons (delete and edit)
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.onclick = function(event) {
+        event.stopPropagation();
+        li.remove();
+        updateTasks();
+    };
+
+    li.appendChild(deleteBtn);
+
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "✏️";
+    editBtn.onclick = function(event) {
+        event.stopPropagation();
+        editarTarefa(li);
+    };
+
+    li.appendChild(editBtn);
+
+    // Update localStorage
+    updateTasks();
+}
+
+
 // Function to automatically check task reminders
 function verificarLembretes() {
 
@@ -161,13 +235,13 @@ function verificarLembretes() {
     tasks.forEach(task => {
         
         // If the reminder time matches the current time
-        if (task.reminder && task.reminder === currentTime && !task.notified) {
+        if (task.reminder && task.reminder === currentTime && task.notify !== true) {
 
             // Show reminder alert
             alert(`⏰ Reminder: ${task.text}`);
 
             // Mark reminder as shown
-            task.notified = true;
+            task.notify = true; // Mark as notified
         }
     });
 }
