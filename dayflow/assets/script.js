@@ -146,3 +146,28 @@ function organizarDia() {
     // Salve the new order
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
+
+// Function to automatically check task reminders
+function verificarLembretes() {
+
+    //Retrieve tasks from localStorage
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    // Get the current time
+    const now =new Date();
+    const currentTime = now.toTimeString().slice(0, 5);
+
+    // Check each task for a reminder
+    tasks.forEach(task => {
+        
+        // If the reminder time matches the current time
+        if (task.reminder && task.reminder === currentTime) {
+
+            // Show reminder alert
+            alert(`⏰ Reminder: ${task.text}`);
+        }
+    });
+}
+
+// Run the reminder checker every 60 seconds
+setInterval(verificarLembretes, 60000);
