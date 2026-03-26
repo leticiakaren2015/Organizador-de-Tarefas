@@ -96,7 +96,7 @@ function saveTask( taskText, completed, priority, category, dueDate, reminder) {
     // Retrieve previously saved tasks 
     let  tasks = JSON.parse(localStorage.getItem("tasks")) || [];
     // Add the new task to the list
-    tasks.push({ text: taskText, completed, priority, category, dueDate, reminder});
+    tasks.push({ text: taskText, completed, priority, category, dueDate, reminder, notified: false});
     // Salves back to localStorage 
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
@@ -161,10 +161,13 @@ function verificarLembretes() {
     tasks.forEach(task => {
         
         // If the reminder time matches the current time
-        if (task.reminder && task.reminder === currentTime) {
+        if (task.reminder && task.reminder === currentTime && !task.notified) {
 
             // Show reminder alert
             alert(`⏰ Reminder: ${task.text}`);
+
+            // Mark reminder as shown
+            task.notified = true;
         }
     });
 }
