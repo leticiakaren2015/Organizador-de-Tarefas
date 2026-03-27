@@ -1,7 +1,127 @@
-// Load tasks when page starts
+// Global state: this will store all tasks in memory
+let tasks = [];
+
+// Entry point: runs when the page finishes loading
 window.onload = function () {
-    loadTasks();
+    loadTasks(); // load data into memory
+    renderTasks(); // Render UI from state
 };
+
+
+// Responsible ONLY for loading data into the global state
+function loadTasks() {
+    try {
+        // Load tasks from localStorage into global array
+        tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    } catch {
+        // Fallback in JSON is corrupted
+        tasks = [];
+    }
+
+    // Debug: confirm tasks are loaded
+    console.log("Tasks loaded", tasks);
+}
+
+
+// Responsible for rendering all tasks fro the global state to the DOM
+function renderTasks() {
+    const list = document.getElementById("taskList");
+    
+    // Clear current UI
+    list.innerHTML = "";
+
+    // Loop through all tasks in memory
+    tasks.forEach((task) => {
+        const li = document.createElement("li");
+
+        // Apply priority class
+        li.classList.add(task.priority);
+
+        // Apply completed state
+        if (task.completed) {
+            li.classList.add("completed");
+        }
+
+        // Create content safely
+        const span = document.createElement ("span");
+        span.textContent = 
+        `[${task.priority}] ${task.text} (${task.category}) | ` +
+        `Prazo: ${task.dueDate || '-'} | ` + 
+        `Lembrete: ${task.reminder || '-'}`;
+
+        li.appendChild(span);
+
+        // Toggle complete only when clicking the list item itself
+        li.addEventListener("click", () => {
+            // Find the  correct task using id instead of index
+            const t = tasks.find(t => t.id === task.id);
+            if (!t) return;
+            t.completed = !t.completed;
+            saveTasks();
+        });
+
+        // Delete button
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "🗑️";
+
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            // Remove task using id
+            tasks = tasks.filter(t => t.id !== task.id);
+            saveTasks();
+        };
+
+        li.appendChild(delBtn);
+
+        // Create edit button
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "✏️";
+
+        // Edit task based on state (NOT DOM)
+        editBtn.onclick = (e) => {
+            e.stopPropagation();
+
+            // Find index safely using id
+            const i = tasks.findIndex(t => t.id === task.id);
+            if (i === -1) return;
+
+            const currentTask = tasks[i];
+
+            // Prompt user for new values
+            const newText = prompt("Editar tarefa:", currentTask.text) || currentTask.text;
+            const newPriority = prompt("Prioridade (baixa, media, alta):", currentTask.priority) || currentTask.priority;
+            const newCategory = prompt("Categoria:", currentTask.category) || currentTask.category;
+            const newDueDate = prompt("Prazo (YYYY-MM-DD):", currentTask.dueDate) || currentTask.dueDate;
+            const newReminder = prompt("Lembrete (HH:MM):", currentTask.reminder) || currentTask.reminder;
+
+            
+            tasks[i] = {
+                ...currentTask,
+                text: newText,
+                priority: newPriority,
+                category: newCategory,
+                dueDate: newDueDate,
+                reminder: newReminder,
+                notified : false
+            };
+
+            // Save and re-render
+            saveTasks();
+        };
+
+        li.appendChild(editBtn);
+
+
+        list.appendChild(li);
+    });
+}
+
+
+// Responsible for saving state and re-rendering UI
+function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    renderTasks(); // Always re-render after state change
+}
 
 
 // Function to add a new task
@@ -10,247 +130,77 @@ function addTask() {
     const input = document.getElementById("taskInput");
     const taskText = input.value;
 
-    // Validade empty input
-    if(taskText === "") {
+    // Validade empty or whitespace-only input
+    if (!taskText.trim()) {
         alert("Digite uma nova tarefa!");
         return;
     };
 
-    // Get the values of the new properties
-    const priority = document.getElementById("taskPriority").value;
-    const category = document.getElementById("taskCategory").value;
-    const dueDate = document.getElementById("taskDueDate").value;
-    const reminder = document.getElementById("taskReminder").value;
+    // Create a new task object (single source of truth)
+    const newTask = {
+        id: crypto.randomUUID(),
+        text: taskText,
+        priority: document.getElementById("taskPriority").value,
+        category: document.getElementById("taskCategory").value,
+        dueDate: document.getElementById("taskDueDate").value,
+        reminder: document.getElementById("taskReminder").value,
+        completed: false,
+        notified: false
+    };
 
-    // Create the task on the screen
-    createTaskElement(taskText, false, priority, category, dueDate, reminder);
-    // Salve the task on localStorage
-    saveTask(taskText, false, priority, category, dueDate, reminder);
+    // Add task to global state
+    tasks.push(newTask);
 
-    // Clears the from fields
-    document.getElementById("taskInput").value = "";
+    // Salve and re-render UI
+    saveTasks();
+    
+    // Clears  from inputs
+    input.value = "";
     document.getElementById("taskCategory").value = "";
     document.getElementById("taskDueDate").value = "";
     document.getElementById("taskReminder").value = "";
 }
 
 
-// Load tasks from localStorage and display them
-function loadTasks() {
-    // Get tasks from localStorage
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    // For each task, create on screen
-    tasks.forEach(task => {
-        createTaskElement(task.text, task.completed, task.priority, task.category, task.dueDate, task.reminder);
-    });
-}
-
-
-// Create task on screen
-function createTaskElement(taskText, completed, priority, category, dueDate, reminder) {
-    // Create element <li>
-    const li = document.createElement("li");
-
-    // Add priority class to the <li> element
-    li.classList.add(priority);
-
-    // Stores task information as attributes of the <li>
-    li.dataset.text = taskText;
-    li.dataset.priority = priority;
-    li.dataset.category = category;
-    li.dataset.dueDate = dueDate;
-    li.dataset.reminder = reminder;
-
-    // Add task content
-    li.innerHTML = `
-    <span class="task-text">
-        <strong>[${priority}]</strong> ${taskText} 
-        <em>(${category})</em>
-        | Prazo: ${dueDate || '-'} | Lembrete: ${reminder || '-'}
-    </span>`;
-
-    // If completed, add the class 'completed'
-    if(completed) li.classList.add("completed");
-
-    // Toggle completed by clicking
-    li.onclick = function () {
-        completed = !completed; // Toggle between true or false
-        li.classList.toggle("completed");
-        updateTasks(); // Update storage
-    };
-
-    // Delete button
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "🗑️";
-    deleteBtn.classList.add("delete");
-    deleteBtn.onclick = function(event) {
-        event.stopPropagation(); // Prevents the click from going up to the li
-        li.remove();
-        updateTasks(); // Update storage
-    };
-
-        // Add delete button to <li>
-    li.appendChild(deleteBtn);
-
-    // Edit button
-    const editBtn = document.createElement("button");
-    editBtn.textContent = "✏️"; 
-    editBtn.classList.add("edit");
-    editBtn.onclick = function(event) {
-        event.stopPropagation(); // Prevent toggle completed
-        editarTarefa(li); //Calls the edit function
-    }
-
-    // Add button of task edit
-    li.appendChild(editBtn);
-    
-    // Add on visible list
-    document.getElementById("taskList").appendChild(li);
-}
-
-
-// Save a single task to localStorage
-function saveTask( taskText, completed, priority, category, dueDate, reminder) {
-    // Retrieve previously saved tasks 
-    let  tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    // Add the new task to the list
-    tasks.push({ text: taskText, completed, priority, category, dueDate, reminder, notified: false});
-    // Salves back to localStorage 
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-// Update all tasks in localStorage
-function updateTasks() {
-    let tasks = [];
-
-    // Get all tasks from the screen
-    document.querySelectorAll("#taskList li").forEach(li => {
-        // Retrieves all task information stored in the attributes of <li>
-        const text = li.dataset.text;
-        const priority = li.dataset.priority;
-        const category = li.dataset.category;
-        const dueDate = li.dataset.dueDate;
-        const reminder = li.dataset.reminder;
-
-        // Add  the task to the array
-        tasks.push({text, completed: li.classList.contains("completed"), priority, category, dueDate, reminder});
-
-    });
-    // Save everything again
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-
 // Function to organize tasks by priority
 function organizarDia() {
-    // Retrieve tasks from localStorage 
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    // Define priority order
+    const ordem = { alta: 3, media: 2, baixa:1 };
 
-    // Define the order of priorities
-    const ordem = { alta: 3, media: 2, baixa: 1 };
-
-    // Organize the tasks
+    // Sort tasks in memory
     tasks.sort((a, b) => ordem[b.priority] - ordem[a.priority]);
 
-    //Clean the list from the screen
-    document.getElementById("taskList").innerHTML = "";
-
-    // Recreate thee tasks in the correct order
-    tasks.forEach(task => {
-        createTaskElement(
-            task.text, task.completed, task.priority, task.category, task.dueDate, task.reminder
-        );
-    });
-
-    // Salve the new order
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-
-// Function to edit a task
-function editarTarefa(li) {
-    // Get current values
-    let taskText = li.dataset.text;
-    let priority = li.dataset.priority;
-    let category = li.dataset.category;
-    let dueDate = li.dataset.dueDate;
-    let reminder = li.dataset.reminder;
-
-    // Prompt user for new values
-    const newText = prompt("Editar tarefa:", taskText) || taskText;
-    const newPriority = prompt("Editar prioridade (baixa, media, alta):", priority) || priority;
-    const newCategory = prompt("Editar categoria:",category) || category;
-    const newDueDate = prompt("Editar prazo (AAAA-MM-DD):", dueDate) || dueDate;
-    const newReminder = prompt("Editar lembrete (HH:MM):", reminder) || reminder;
-
-    // Update dateset
-    li.dataset.text = newText;
-    li.dataset.priority = newPriority;
-    li.dataset.category = newCategory;
-    li.dataset.dueDate = newDueDate;
-    li.dataset.reminder = newReminder;
-
-    // Reset notify flag for reminders
-    li.dataset.notify = "false";
-
-    // Update visual content
-    li.querySelector(".task-text").innerHTML =`
-    <strong>[${newPriority}]</strong> ${newText}
-    <em>(${newCategory})</em>
-    | Prazo: ${newDueDate || '-'} | Lembrete: ${newReminder || '-'}`;
-
-
-    // Reuse existing buttons instead of creating new ones
-    const deleteBtn = li.querySelector(".delete") || document.createElement("button");
-    deleteBtn.textContent = "🗑️";
-    deleteBtn.classList.add("delete");
-    deleteBtn.onclick = function(event) {
-        event.stopPropagation();
-        li.remove();
-        updateTasks();
-    };
-
-    // Append only if it didn’t exist before
-    if (!li.contains(deleteBtn)) li.appendChild(deleteBtn);
-
-    const editBtn = li.querySelector(".edit") || document.createElement("button");
-    editBtn.textContent = "✏️";
-    editBtn.classList.add("edit");
-    editBtn.onclick = function(event) {
-        event.stopPropagation();
-        editarTarefa(li);
-    };
-
-    if (!li.contains(editBtn)) li.appendChild(editBtn);
-
-    // Update localStorage
-    updateTasks();
+    // Save and re-render UI
+    saveTasks();
 }
 
 
 // Function to automatically check task reminders
 function verificarLembretes() {
 
-    //Retrieve tasks from localStorage
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-
-    // Get the current time
-    const now =new Date();
+    // Use global state instead of reloading
+    const now = new Date();
     const currentTime = now.toTimeString().slice(0, 5);
+
+    // Flag to track if any reminder was triggered
+    let updated = false;
 
     // Check each task for a reminder
     tasks.forEach(task => {
         
-        // If the reminder time matches the current time
-        if (task.reminder && task.reminder === currentTime && task.notify !== "true") {
+        // Check reminder and avoid duplicate alerts
+        if (task.reminder && task.reminder === currentTime && !task.notified) {
 
-            // Show reminder alert
             alert(`⏰ Reminder: ${task.text}`);
-
-            // Mark reminder as shown
-            task.notify = true; // Mark as notified
+            task.notified = true; // Mark as notified
+            updated = true;
         }
     });
+
+    // Persist only if something changed
+    if (updated) {
+        saveTasks();
+    }
 }
 
 // Run the reminder checker every 60 seconds
